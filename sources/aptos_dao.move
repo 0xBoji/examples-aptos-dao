@@ -27,6 +27,13 @@ module dao::aptos_dao {
         ended_time: u64,
     }
 
+    struct DAOState has key {
+        spaces: vector<Space>,
+        proposals: vector<Proposal>,
+        space_count: u64,
+        proposal_count: u64,
+    }
+
     struct Proposal {
         id: u64,
         img_link: String,
@@ -42,6 +49,15 @@ module dao::aptos_dao {
         count_vote_no: u64,
     }
     
+    fun init_module(account: &signer) {
+        let dao_state = DAOState {
+            spaces: vector::empty(),
+            proposals: vector::empty(),
+            space_count: 0,
+            proposal_count: 0,
+        };
+        move_to(account, dao_state);
+    }
 
     // ===== entry FUNCS =====
     // CREATE SPACE
@@ -102,21 +118,25 @@ module dao::aptos_dao {
 
     // ===== VIEWS FUNCS =====
     // get space
-    #[view]
-    public fun get_space(space_id: u64): Space {
-        self.spaces[space_id]
-    }
-    // get proposal active that meant stll not closed
-    #[view]
-    public fun get_proposal_active(proposal_id: u64): Proposal {
-        self.proposals[proposal_id]
+       #[view]
+    public fun get_space(space_id: u64): Space acquires DAOState {
+        let dao_state = borrow_global<DAOState>(@dao);
+        *vector::borrow(&dao_state.spaces, space_id)
     }
 
-    //get all proposals
     #[view]
-    public fun get_all_proposals(): vector<Proposal> {
-        self.proposals
-    }   
+    public fun get_proposal_active(proposal_id: u64): Proposal acquires DAOState {
+        let dao_state = borrow_global<DAOState>(@dao);
+        let proposal = vector::borrow(&dao_state.proposals, proposal_id);
+        assert!(!proposal.is_closed, E_PROPOSAL_NOT_PENDING);
+        *proposal
+    }
+
+    #[view]
+    public fun get_all_proposals(): vector<Proposal> acquires DAOState {
+        let dao_state = borrow_global<DAOState>(@dao);
+        dao_state.proposals
+    }
     // get all proposals by space id
     #[view]
     public fun get_all_proposals_by_space(space_id: u64): vector<Proposal> {
@@ -139,8 +159,16 @@ module dao::aptos_dao {
     public fun get_all_proposals_voted_by_address(address: address): vector<Proposal> {
         self.proposals[address]
     }   
-<<<<<<< HEAD
+
+    // ===== HELPER FUNCS =====
+        // Helper functions
+    fun space_exists(space_id: u64): bool acquires DAOState {
+        let dao_state = borrow_global<DAOState>(@dao);
+        space_id < dao_state.space_count
+    }
+
+    fun proposal_exists(proposal_id: u64): bool acquires DAOState {
+        let dao_state = borrow_global<DAOState>(@dao);
+        proposal_id < dao_state.proposal_count
+    }
 }
-=======
-}
->>>>>>> c96198177bb248af20ad25f598ddc95bff5b83b3
