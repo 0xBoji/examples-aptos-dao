@@ -3,6 +3,9 @@
 ## Overview
 This contract implements a Decentralized Autonomous Organization (DAO) on the Aptos blockchain. It allows users to create spaces, join spaces, create proposals, and vote on proposals.
 
+## Social:
+touch me in https://linktr.ee/pichtran
+
 ## Structures
 
 ### Space
